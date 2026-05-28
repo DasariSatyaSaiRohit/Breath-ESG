@@ -18,7 +18,7 @@ function tabClass(active: boolean, size: 'base' | 'sm' = 'base') {
   const text = size === 'sm' ? 'text-sm' : 'text-sm font-medium'
   return [
     text,
-    'pb-2 transition-colors cursor-pointer',
+    'pb-2 transition-colors cursor-pointer whitespace-nowrap',
     active
       ? 'border-b-2 border-[#16A34A] text-[#16A34A] font-medium'
       : 'text-[#6B7280] hover:text-[#374151] border-b-2 border-transparent',
@@ -29,12 +29,17 @@ export function SourceTabs({ activeSource, onChange }: SourceTabsProps) {
   const [, setSearchParams] = useSearchParams()
 
   const isTravel = activeSource.startsWith('travel_')
+  const isSap    = activeSource === 'sap_procurement'
+  const isUtility = !isTravel && !isSap
 
-  const handleMainTab = (tab: 'utility' | 'travel') => {
+  const handleMainTab = (tab: 'utility' | 'travel' | 'sap') => {
     let source: SourceType
     if (tab === 'utility') {
       source = 'utility_electricity'
       setSearchParams({ tab: 'utility' })
+    } else if (tab === 'sap') {
+      source = 'sap_procurement'
+      setSearchParams({ tab: 'sap' })
     } else {
       source = 'travel_air'
       setSearchParams({ tab: 'travel', type: 'air' })
@@ -53,7 +58,7 @@ export function SourceTabs({ activeSource, onChange }: SourceTabsProps) {
       <div className="flex gap-6 border-b border-[#E5E7EB]">
         <button
           onClick={() => handleMainTab('utility')}
-          className={tabClass(!isTravel)}
+          className={tabClass(isUtility)}
         >
           Utility Electricity
         </button>
@@ -63,9 +68,15 @@ export function SourceTabs({ activeSource, onChange }: SourceTabsProps) {
         >
           Corporate Travel
         </button>
+        <button
+          onClick={() => handleMainTab('sap')}
+          className={tabClass(isSap)}
+        >
+          SAP Procurement
+        </button>
       </div>
 
-      {/* Sub-tab row — only visible when travel is active */}
+      {/* Sub-tab row — only when travel is active; hidden for SAP */}
       {isTravel && (
         <div className="flex gap-4 bg-[#F8F9FA] px-4 py-2 border-b border-[#E5E7EB]">
           {travelTypes.map(({ type, label, source }) => (

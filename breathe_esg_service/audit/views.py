@@ -10,7 +10,7 @@ class AuditLogListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        qs = AuditLog.objects.filter(tenant=request.user.tenant).order_by('-timestamp')
+        qs = AuditLog.objects.select_related('user').filter(tenant=request.user.tenant).order_by('-timestamp')
 
         date_from = request.query_params.get('date_from', '')
         date_to = request.query_params.get('date_to', '')

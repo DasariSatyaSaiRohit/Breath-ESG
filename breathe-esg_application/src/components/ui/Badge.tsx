@@ -1,7 +1,7 @@
 import React from 'react'
 import { RecordStatus, AuditAction } from '../../types'
 
-type BadgeVariant = RecordStatus | AuditAction
+type BadgeVariant = RecordStatus | AuditAction | 'duplicate'
 
 interface BadgeProps {
   variant: BadgeVariant
@@ -19,6 +19,8 @@ const styles: Record<BadgeVariant, string> = {
   edited:        'bg-[#FEF3C7] text-[#92400E]',
   bulk_approved: 'bg-[#CCFBF1] text-[#115E59]',
   locked:        'bg-[#F3E8FF] text-[#6B21A8]',
+  // Duplicate indicator
+  duplicate:     'bg-[#FEF3C7] text-[#92400E]',
 }
 
 export function Badge({ variant, children }: BadgeProps) {

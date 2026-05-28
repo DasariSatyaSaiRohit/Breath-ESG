@@ -41,6 +41,13 @@ class UtilityRecord(models.Model):
     flag_reason = models.TextField(null=True, blank=True)
     is_locked = models.BooleanField(default=False)
 
+    # DUPLICATE TRACKING (E11a)
+    is_duplicate = models.BooleanField(default=False)
+    duplicate_of = models.ForeignKey(
+        'self', null=True, blank=True,
+        on_delete=models.SET_NULL, related_name='duplicates'
+    )
+
     # AUDIT TRAIL
     edited_by = models.ForeignKey(
         'users.User', null=True, blank=True,
@@ -110,6 +117,13 @@ class TravelRecord(models.Model):
     flag_reason = models.TextField(null=True, blank=True)
     is_locked = models.BooleanField(default=False)
 
+    # DUPLICATE TRACKING (E11a)
+    is_duplicate = models.BooleanField(default=False)
+    duplicate_of = models.ForeignKey(
+        'self', null=True, blank=True,
+        on_delete=models.SET_NULL, related_name='duplicates'
+    )
+
     # AUDIT TRAIL
     edited_by = models.ForeignKey(
         'users.User', null=True, blank=True,
@@ -128,3 +142,77 @@ class TravelRecord(models.Model):
 
     def __str__(self):
         return f"TravelRecord {self.id} [{self.travel_type}] [{self.status}]"
+
+
+class SapRecord(models.Model):
+    """
+    SAP procurement records — E1a / E8.
+    raw_data keys: Plant_Code, Material, Quantity, Unit, Vendor,
+    Document_Date, Purchase_Order, Cost_Center, GL_Account, Company_Code.
+    These are data-driven; the model stores them as JSON.
+    """
+    # IDENTITY
+    tenant = models.ForeignKey(
+        'tenants.Tenant', on_delete=models.CASCADE,
+        related_name='sap_records'
+    )
+    job = models.ForeignKey(
+        'ingestion.IngestionJob', on_delete=models.CASCADE,
+        related_name='sap_records'
+    )
+
+    # CLASSIFICATION
+    scope = models.CharField(max_length=20, default='scope_1')
+    schema_type = models.CharField(max_length=50, default='sap_csv')
+    source_type = models.CharField(max_length=30, default='sap_procurement')
+
+    # NORMALIZED — computed from Quantity × emission factor
+    activity_date = models.DateField()
+    normalized_value = models.DecimalField(
+        max_digits=15, decimal_places=4, null=True
+    )
+    normalized_unit = models.CharField(max_length=50, default='kg CO2e')
+    description = models.TextField(default='')
+
+    # RAW — write-once
+    raw_data = models.JSONField(default=dict)
+
+    # REVIEW STATE
+    status = models.CharField(
+        max_length=20,
+        choices=[
+            ('pending', 'Pending'),
+            ('approved', 'Approved'),
+            ('flagged', 'Flagged'),
+            ('failed', 'Failed'),
+        ],
+        default='pending',
+    )
+    flag_reason = models.TextField(null=True, blank=True)
+    is_locked = models.BooleanField(default=False)
+
+    # DUPLICATE TRACKING (E11a)
+    is_duplicate = models.BooleanField(default=False)
+    duplicate_of = models.ForeignKey(
+        'self', null=True, blank=True,
+        on_delete=models.SET_NULL, related_name='duplicates'
+    )
+
+    # AUDIT TRAIL
+    edited_by = models.ForeignKey(
+        'users.User', null=True, blank=True,
+        on_delete=models.SET_NULL, related_name='sap_edits'
+    )
+    edited_at = models.DateTimeField(null=True, blank=True)
+    approved_by = models.ForeignKey(
+        'users.User', null=True, blank=True,
+        on_delete=models.SET_NULL, related_name='sap_approvals'
+    )
+    approved_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-activity_date']
+
+    def __str__(self):
+        return f"SapRecord {self.id} [{self.status}]"

@@ -1,12 +1,30 @@
+/**
+ * src/api/axios.ts
+ *
+ * In production (Railway):
+ *   VITE_API_URL=https://your-backend.up.railway.app
+ *   axiosInstance.baseURL = 'https://your-backend.up.railway.app/api/'
+ *
+ * In local dev:
+ *   VITE_API_URL is unset → baseURL = '/api/' → Vite proxy forwards to Django
+ *
+ * withCredentials=true is required for the httpOnly refresh token cookie
+ * to be sent cross-origin in production.
+ */
 import axios from 'axios'
 import { accessTokenRef } from '../context/AuthContext'
 
+// Use VITE_API_URL in production; fall back to relative '/api/' for dev proxy
+const BASE_URL = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/api/`
+  : '/api/'
+
 const axiosInstance = axios.create({
-  baseURL: '/api/',
-  withCredentials: true, // send httpOnly refresh cookie
+  baseURL: BASE_URL,
+  withCredentials: true,  // send httpOnly refresh cookie on every request
 })
 
-// Request interceptor: attach Bearer token
+// ── Request interceptor — attach Bearer token ────────────────────────────────
 axiosInstance.interceptors.request.use(config => {
   const token = accessTokenRef.current
   if (token) {
@@ -15,6 +33,7 @@ axiosInstance.interceptors.request.use(config => {
   return config
 })
 
+// ── Response interceptor — handle 401 with silent token refresh ──────────────
 let isRefreshing = false
 let refreshSubscribers: ((token: string) => void)[] = []
 
@@ -27,7 +46,6 @@ function onTokenRefreshed(token: string) {
   refreshSubscribers = []
 }
 
-// Response interceptor: handle 401
 axiosInstance.interceptors.response.use(
   response => response,
   async error => {
@@ -37,6 +55,7 @@ axiosInstance.interceptors.response.use(
       originalRequest._retry = true
 
       if (isRefreshing) {
+        // Queue the request until the ongoing refresh completes
         return new Promise(resolve => {
           subscribeTokenRefresh(token => {
             originalRequest.headers.Authorization = `Bearer ${token}`
@@ -48,17 +67,22 @@ axiosInstance.interceptors.response.use(
       isRefreshing = true
 
       try {
-        const { data } = await axios.post('/api/auth/refresh/', {}, { withCredentials: true })
+        const refreshURL = import.meta.env.VITE_API_URL
+          ? `${import.meta.env.VITE_API_URL}/api/auth/refresh/`
+          : '/api/auth/refresh/'
+
+        const { data } = await axios.post(refreshURL, {}, { withCredentials: true })
         const newToken: string = data.access_token
+
         accessTokenRef.current = newToken
         onTokenRefreshed(newToken)
         isRefreshing = false
+
         originalRequest.headers.Authorization = `Bearer ${newToken}`
         return axiosInstance(originalRequest)
       } catch {
         isRefreshing = false
         accessTokenRef.current = null
-        // Trigger logout by dispatching a custom event — AuthProvider listens
         window.dispatchEvent(new Event('auth:logout'))
         window.location.href = '/login'
         return Promise.reject(error)

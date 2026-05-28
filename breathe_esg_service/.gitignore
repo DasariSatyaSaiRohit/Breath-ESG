@@ -1,5 +1,15 @@
 venv/
+.venv/
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
 .env
-migrations/
+*.egg-info/
+dist/
+build/
+staticfiles/
+media/
+.DS_Store
+*.log
+db.sqlite3

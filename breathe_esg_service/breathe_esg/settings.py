@@ -110,10 +110,7 @@ if not DEBUG:
 MEDIA_URL = "/media/"
 MEDIA_ROOT = config("MEDIA_ROOT", default=os.path.join(BASE_DIR, "media"))
 
-# ── CORS ──────────────────────────────────────────────────────────────────────
-# FRONTEND_URL must be the exact origin Railway assigns to the frontend service,
-# e.g. https://breathe-esg-frontend.up.railway.app
-# Set CORS_ALLOW_ALL_ORIGINS=True only in local dev via .env
+
 _cors_all = config("CORS_ALLOW_ALL_ORIGINS", default=False, cast=bool)
 if _cors_all:
     CORS_ALLOW_ALL_ORIGINS = True

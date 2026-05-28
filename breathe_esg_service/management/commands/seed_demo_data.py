@@ -31,6 +31,8 @@ class Command(BaseCommand):
         tenant, _ = Tenant.objects.get_or_create(
             slug="acme-corp",
             defaults={"name": "Acme Corp"},
+            timezone="Asia/Kolkata",
+            date_display_format="DD/MM/YYYY",
         )
         self.stdout.write(f"  Tenant: {tenant}")
 

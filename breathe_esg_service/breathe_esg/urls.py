@@ -7,4 +7,6 @@ urlpatterns = [
     path("api/ingestion/", include("ingestion.urls")),
     path("api/records/", include("records.urls")),
     path("api/audit/", include("audit.urls")),
+    path("api/tenant/", include("tenants.urls")),
+    path("api/dashboard/", include("dashboard.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

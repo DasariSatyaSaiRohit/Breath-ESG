@@ -15,6 +15,7 @@ class AuditLog(models.Model):
     RECORD_SOURCE_TYPE_CHOICES = [
         ('utility', 'Utility'),
         ('travel', 'Travel'),
+        ('sap', 'SAP'),
     ]
 
     tenant = models.ForeignKey(

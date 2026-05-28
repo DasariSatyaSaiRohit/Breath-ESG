@@ -48,13 +48,14 @@ def parse_prefixed_id(prefixed_id: str) -> tuple:
     """
     Parses 'utility_42' → ('utility', 42)
     Parses 'travel_7'   → ('travel', 7)
+    Parses 'sap_5'      → ('sap', 5)
     Raises ValueError on bad format.
     """
     parts = prefixed_id.split('_', 1)
     if len(parts) != 2:
         raise ValueError(f"Invalid prefixed ID: '{prefixed_id}'")
     source_type, record_id = parts[0], parts[1]
-    if source_type not in ('utility', 'travel'):
+    if source_type not in ('utility', 'travel', 'sap'):
         raise ValueError(f"Unknown source type: '{source_type}'")
     try:
         return source_type, int(record_id)
@@ -64,17 +65,21 @@ def parse_prefixed_id(prefixed_id: str) -> tuple:
 
 def get_record_by_prefixed_id(prefixed_id: str, tenant):
     """
-    Fetches UtilityRecord or TravelRecord by prefixed ID.
+    Fetches UtilityRecord, TravelRecord, or SapRecord by prefixed ID.
     Always filters by tenant — never fetch cross-tenant.
     Returns (record, source_type) tuple.
     Raises Http404 if not found.
     """
     from django.http import Http404
-    from .models import UtilityRecord, TravelRecord
+    from .models import SapRecord, TravelRecord, UtilityRecord
     source_type, record_id = parse_prefixed_id(prefixed_id)
-    model = {'utility': UtilityRecord, 'travel': TravelRecord}[source_type]
+    model = {'utility': UtilityRecord, 'travel': TravelRecord, 'sap': SapRecord}[source_type]
     try:
-        return model.objects.get(id=record_id, tenant=tenant), source_type
+        return (
+            model.objects
+            .select_related('edited_by', 'approved_by')
+            .get(id=record_id, tenant=tenant)
+        ), source_type
     except model.DoesNotExist:
         raise Http404
 

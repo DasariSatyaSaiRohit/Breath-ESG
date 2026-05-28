@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     "ingestion",
     "records",
     "audit",
+    "dashboard",
 ]
 
 MIDDLEWARE = [
@@ -58,6 +59,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "breathe_esg.wsgi.application"
 
+# Database
 DATABASE_URL = config("DATABASE_URL")
 
 url = urlparse(DATABASE_URL)
@@ -65,7 +67,7 @@ url = urlparse(DATABASE_URL)
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": url.path[1:], 
+        "NAME": url.path[1:],  # removes leading '/'
         "USER": url.username,
         "PASSWORD": url.password,
         "HOST": url.hostname,
@@ -75,7 +77,6 @@ DATABASES = {
         },
     }
 }
-print("DATABASES:", DATABASES)
 
 AUTH_USER_MODEL = "users.User"
 

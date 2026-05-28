@@ -6,13 +6,14 @@ import { FilterBar } from '../components/review/FilterBar'
 import { RecordTable } from '../components/review/RecordTable'
 
 function deriveSource(tab: string | null, type: string | null): SourceType {
+  if (tab === 'sap')    return 'sap_procurement'
   if (tab === 'travel') {
     if (type === 'hotel')  return 'travel_hotel'
     if (type === 'ground') return 'travel_ground'
     if (type === 'rail')   return 'travel_rail'
-    return 'travel_air'   // default travel sub-tab
+    return 'travel_air'
   }
-  return 'utility_electricity'
+  return 'utility_electricity'  // default
 }
 
 export function ReviewPage() {
@@ -22,11 +23,11 @@ export function ReviewPage() {
 
   const activeSource = deriveSource(tab, type)
 
-  // filters holds status/dates only — source is handled by SourceTabs
+  // filters holds status/dates only — source handled by SourceTabs
   const [filters, setFilters] = useState<RecordFilters>({ page: 1 })
 
   const handleSourceChange = (_source: SourceType) => {
-    // Reset to page 1 when tab changes
+    // Reset page when tab changes
     setFilters(prev => ({ ...prev, page: 1 }))
   }
 

@@ -94,7 +94,7 @@ MEDIA_ROOT = config("MEDIA_ROOT", default=os.path.join(BASE_DIR, "media"))
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # CORS
-CORS_ALLOWED_ORIGINS = [config("FRONTEND_URL", default="http://localhost:3000")]
+CORS_ALLOWED_ORIGINS = [config("FRONTEND_URL", default="https://breath-esg-production-ef1a.up.railway.app/")]
 CORS_ALLOW_CREDENTIALS = True
 
 # DRF

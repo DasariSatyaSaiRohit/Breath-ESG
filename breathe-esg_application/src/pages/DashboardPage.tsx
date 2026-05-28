@@ -79,38 +79,6 @@ export function DashboardPage() {
 
       {/* Scope + Source breakdown */}
       <div className="grid grid-cols-2 gap-4">
-        {/* Scope breakdown */}
-        <Card className="p-5">
-          <h2 className="text-sm font-semibold text-[#111827] mb-4">Scope Breakdown</h2>
-          {isLoading ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map(i => <CardSkeleton key={i} />)}
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {(['scope_1', 'scope_2', 'scope_3'] as const).map(scope => {
-                const val   = scopeBreakdown?.[scope] ?? 0
-                const total = (scopeBreakdown?.scope_1 ?? 0) + (scopeBreakdown?.scope_2 ?? 0) + (scopeBreakdown?.scope_3 ?? 0)
-                const pct   = total > 0 ? Math.round((val / total) * 100) : 0
-                const label = scope.replace('_', ' ').replace('scope', 'Scope')
-                return (
-                  <div key={scope}>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="text-[#374151] font-medium">{label}</span>
-                      <span className="text-[#6B7280]">{val} ({pct}%)</span>
-                    </div>
-                    <div className="h-2 bg-[#F3F4F6] rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all duration-500"
-                        style={{ width: `${pct}%`, backgroundColor: scopeColors[scope] }}
-                      />
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          )}
-        </Card>
 
         {/* Source breakdown */}
         <Card className="p-5">

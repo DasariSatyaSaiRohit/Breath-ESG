@@ -40,12 +40,6 @@ def _aggregate_records(tenant):
             failed=Count('id', filter=Q(status='failed')),
         )
 
-    def _scopes(qs):
-        return qs.aggregate(
-            scope_1=Count('id', filter=Q(scope='scope_1')),
-            scope_2=Count('id', filter=Q(scope='scope_2')),
-            scope_3=Count('id', filter=Q(scope='scope_3')),
-        )
 
     u_qs = UtilityRecord.objects.filter(tenant=tenant)
     t_qs = TravelRecord.objects.filter(tenant=tenant)
@@ -55,10 +49,6 @@ def _aggregate_records(tenant):
     u_stats = _stats(u_qs)
     t_stats = _stats(t_qs)
     s_stats = _stats(s_qs)
-
-    u_scopes = _scopes(u_qs)
-    t_scopes = _scopes(t_qs)
-    s_scopes = _scopes(s_qs)
 
     def _sum(key, *dicts):
         return sum(d.get(key) or 0 for d in dicts)
@@ -71,19 +61,13 @@ def _aggregate_records(tenant):
         'failed':         _sum('failed',   u_stats, t_stats, s_stats),
     }
 
-    scope_breakdown = {
-        'scope_1': _sum('scope_1', u_scopes, t_scopes, s_scopes),
-        'scope_2': _sum('scope_2', u_scopes, t_scopes, s_scopes),
-        'scope_3': _sum('scope_3', u_scopes, t_scopes, s_scopes),
-    }
-
     source_breakdown = {
         'utility': u_stats.get('total') or 0,
         'travel':  t_stats.get('total') or 0,
         'sap':     s_stats.get('total') or 0,
     }
 
-    return stats, scope_breakdown, source_breakdown
+    return stats, source_breakdown
 
 
 def _monthly_trend(tenant):
@@ -135,7 +119,7 @@ class DashboardSummaryView(APIView):
     def get(self, request):
         tenant = request.user.tenant
 
-        stats, scope_breakdown, source_breakdown = _aggregate_records(tenant)
+        stats, source_breakdown = _aggregate_records(tenant)
 
         recent_ingestions = list(
             IngestionJob.objects
@@ -162,7 +146,6 @@ class DashboardSummaryView(APIView):
 
         return Response({
             'stats':              stats,
-            'scope_breakdown':    scope_breakdown,
             'source_breakdown':   source_breakdown,
             'recent_ingestions':  recent,
             'monthly_trend':      monthly_trend,

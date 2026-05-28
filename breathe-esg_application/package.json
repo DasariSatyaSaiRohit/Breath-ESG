@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview --host 0.0.0.0 --port $PORT",
-    "start": "serve dist -l $PORT"
+    "preview": "vite preview",
+    "start": "serve dist -l ${PORT:-8080}"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.0.0",
@@ -16,7 +16,8 @@
     "date-fns-tz": "^3.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.20.0"
+    "react-router-dom": "^6.20.0",
+    "serve": "^14.2.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.0",

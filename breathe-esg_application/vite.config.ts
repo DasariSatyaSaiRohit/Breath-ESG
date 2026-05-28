@@ -6,7 +6,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'breath-esg-production.up.railway.app',
+        target: 'import.meta.env.API_URL,',
         changeOrigin: true,
       },
     },
